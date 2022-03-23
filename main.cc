@@ -1,11 +1,14 @@
-#include "parser.h"
+#include "lexer.h"
 
-#include <string>
-using namespace std::literals;
+#include <cstdio>
 
-int main() {
-	auto test_case = "main()\n{\nint i = 10;\nwhile (i) i = i - 1;\n}"s;
-	// auto pairs =  GetPair(test_case);
-	// PrintPairs(pairs);
-	return 0;
+int main(int argc, char *argv[]) {
+  if (argc != 2) {
+    fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
+    return EXIT_FAILURE;
+  }
+  auto file = argv[1];
+  auto token_table = LexerParse(file);
+  PrintTokenTable(token_table);
+  return 0;
 }
