@@ -84,7 +84,9 @@ bool IsOperator(const std::string &word) {
   static std::unordered_map<std::string, TokenType> operators{
       {">", TokenType::kGreater},       {"<", TokenType::kLess},
       {">=", TokenType::kGreaterEqual}, {"<=", TokenType::kLessEqual},
-      {"==", TokenType::kEqual},        {"!=", TokenType::kNotEqual}};
+      {"==", TokenType::kEqual},        {"!=", TokenType::kNotEqual},
+      {"+", TokenType::kAdd},           {"-", TokenType::kSub},
+      {"*", TokenType::kMULTIPLY},      {"/", TokenType::kDivide}};
   return (operators.find(word) != operators.cend());
 }
 
