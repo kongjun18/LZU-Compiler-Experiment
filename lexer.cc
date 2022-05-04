@@ -5,10 +5,10 @@
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>
-#include <iostream>
 #include <exception>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <iterator>
 #include <numeric>
 #include <stdexcept>
@@ -26,17 +26,7 @@ std::string TokenType2String(TokenType token_type) {
 }
 
 std::string TokenValue2String(const TokenValue &token_value) {
-  switch (token_value.index()) {
-  case 0: { // int
-    return std::to_string(std::get<int>(token_value));
-  }
-  case 1: // string
-    return std::get<std::string>(token_value);
-  default: // unknown
-    throw std::runtime_error("Invalid TokenValue Type");
-    break;
-  }
-  return std::string{}; // Unreachable!!!
+  return token_value;
 }
 
 // NOTE: not implemented.
@@ -116,7 +106,8 @@ TokenType TokenId(const std::string &token) {
   return (type == token2type.cend()) ? TokenType::kInvalid : type->second;
 }
 
-TokenTable LexerParse(std::string source_file) {
+// TODO: Check whether the parentheses matches
+TokenTable LexerParse(const std::string &source_file) {
   auto path = std::filesystem::path{source_file};
   if (!std::filesystem::exists(path) ||
       !std::filesystem::is_regular_file(path)) {
@@ -136,7 +127,7 @@ TokenTable LexerParse(std::string source_file) {
     if (isdigit(*index)) { // Expect number
       auto start = index;
       auto end = std::find_if(index, source_code.cend(),
-                           [](auto c) { return !isdigit(c); });
+                              [](auto c) { return !isdigit(c); });
       // Process error
       if (end < source_code.cend()) {
         if (isalpha(*end)) { // Invalid token like 123abc
@@ -145,12 +136,12 @@ TokenTable LexerParse(std::string source_file) {
         }
       }
       // TODO: test number range
-      token_table.emplace_back(TokenType::kIdentifier, std::string{start, end},
+      token_table.emplace_back(TokenType::kNumber, std::string{start, end},
                                TokenAttr{});
       index = end;
     } else if (isalpha(*index)) { // Expect identifier or keyword
       auto end = std::find_if(index, source_code.cend(),
-                           [](auto c) { return !isalnum(c); });
+                              [](auto c) { return !isalnum(c); });
       auto token = std::string{index, end};
 
       if (IsKeyword(token)) { // Keyword
@@ -162,16 +153,25 @@ TokenTable LexerParse(std::string source_file) {
       index = end;
     } else if (*index == '"') { // Expect string
       auto end = std::find_if(index + 1, source_code.cend(),
-                           [](auto c) { return c == '"'; });
+                              [](auto c) { return c == '"'; });
       if (end == source_code.cend()) {
         FatalError("String is not close");
       }
       token_table.emplace_back(TokenType::kString, std::string{index + 1, end},
                                TokenAttr{});
       index = end + 1;
+    } else if (*index == '\'') { // Expect single character
+      auto end = std::find_if(index + 1, source_code.cend(),
+                              [](auto c) { return c == '\''; });
+      if (end == source_code.cend()) {
+        FatalError("Character misses necessary'");
+      }
+      token_table.emplace_back(TokenType::kChar, std::string{index + 1, end},
+                               TokenAttr{});
+      index = end + 1;
     } else if (isspace(*index)) { // Skip space
       index = std::find_if(index + 1, source_code.cend(),
-                        [](auto c) { return !isspace(c); });
+                           [](auto c) { return !isspace(c); });
     } else {                     // Expect operators and delimiters
       if (IsDelimiter(*index)) { // Delimiters
         token_table.emplace_back(TokenId(std::string{*index}),

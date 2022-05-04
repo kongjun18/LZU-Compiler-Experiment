@@ -42,7 +42,8 @@ enum class TokenType : int {
 // NOTE: extend it in future.
 struct TokenAttr {};
 
-using TokenValue = std::variant<int, std::string>;
+// using TokenValue = std::variant<int, std::string>;
+using TokenValue = std::string;
 
 struct Token {
   Token() = default;
@@ -60,7 +61,7 @@ std::string TokenValue2String(const TokenValue &token_value);
 std::string TokenAttr2String([[maybe_unused]] const TokenAttr &token_attr);
 void PrintTokenTable(const TokenTable &token_table);
 
-TokenTable LexerParse(std::string source_file);
+TokenTable LexerParse(const std::string &source_file);
 TokenType TokenId(const std::string &token);
 
 bool IsOperator(const std::string &word);
